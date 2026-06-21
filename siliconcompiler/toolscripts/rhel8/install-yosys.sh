@@ -26,6 +26,21 @@ sudo dnf config-manager --set-disabled powertools 2>/dev/null || \
 mkdir -p deps
 cd deps
 
+# Yosys v0.66 requires bison >= 3.6; Rocky 8 AppStream ships 3.0.4.
+if ! bison --version 2>/dev/null | head -1 | grep -qE '3\.([6-9]|[0-9]{2,})|[4-9]\.'; then
+    BISON_PREFIX="${PREFIX:-$HOME/.local}/bison"
+    if [ ! -x "${BISON_PREFIX}/bin/bison" ]; then
+        curl -sSL -O https://ftp.gnu.org/gnu/bison/bison-3.8.2.tar.xz
+        tar xf bison-3.8.2.tar.xz
+        cd bison-3.8.2
+        ./configure --prefix="$BISON_PREFIX"
+        make -j${NPROC:-$(nproc)}
+        make install
+        cd ..
+    fi
+    export PATH="${BISON_PREFIX}/bin:$PATH"
+fi
+
 git clone $(python3 ${src_path}/_tools.py --tool yosys --field git-url) yosys
 cd yosys
 git checkout $(python3 ${src_path}/_tools.py --tool yosys --field git-commit)

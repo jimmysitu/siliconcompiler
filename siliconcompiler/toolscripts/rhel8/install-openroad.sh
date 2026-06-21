@@ -13,6 +13,13 @@ fi
 
 sudo yum install -y git curl --skip-broken
 
+# OpenROAD's DependencyInstaller pulls xcb GUI libs via yum. On Rocky/RHEL 8:
+#   - xcb-util-*-devel live in PowerTools (CRB)
+#   - xcb-util-cursor is only in EPEL (not AppStream)
+sudo dnf config-manager --set-enabled powertools 2>/dev/null || \
+    sudo dnf config-manager --set-enabled devel 2>/dev/null || true
+sudo yum install -y epel-release
+
 mkdir -p deps
 cd deps
 
@@ -30,6 +37,9 @@ git submodule update --init --recursive
 # and compiler toolchain are handled internally for the rhel8 family).
 sudo ./etc/DependencyInstaller.sh -bazel -prefix="$BAZEL_PREFIX"
 sudo chown -R $USER:$USER $BAZEL_PREFIX
+
+sudo dnf config-manager --set-disabled powertools 2>/dev/null || \
+    sudo dnf config-manager --set-disabled devel 2>/dev/null || true
 
 if [ ! -z ${PREFIX} ]; then
     install_loc="$PREFIX"

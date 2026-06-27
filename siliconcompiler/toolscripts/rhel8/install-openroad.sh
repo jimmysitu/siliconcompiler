@@ -34,6 +34,10 @@ cd openroad
 git checkout $(python3 ${src_path}/_tools.py --tool openroad --field git-commit)
 git submodule update --init --recursive
 
+# Use or-tools' bundled shared Abseil instead of a separate static install.
+patch -p1 --forward --batch \
+    < "${src_path}/rhel8/patches/openroad-or-tools-abseil.patch" || true
+
 # RPM packages (Qt, Tcl, yaml-cpp, ...) plus common deps (boost, or-tools, ...).
 sudo ./etc/DependencyInstaller.sh -base
 ./etc/DependencyInstaller.sh -common -prefix="$install_loc"

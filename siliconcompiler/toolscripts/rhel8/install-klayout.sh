@@ -68,7 +68,7 @@ git clone "$(python3 "${src_path}/_tools.py" --tool klayout --field git-url)" kl
 cd klayout
 git checkout "$(python3 "${src_path}/_tools.py" --tool klayout --field git-commit)"
 
-build_cmd="./build.sh -prefix=${install_loc} -python ${PYTHON} -qmake ${QMAKE} -j${NPROC:-$(nproc)}"
+build_cmd="./build.sh -prefix \"${install_loc}\" -python \"${PYTHON}\" -qmake \"${QMAKE}\" -option \"-j${NPROC:-$(nproc)}\""
 if [ "${USE_SUDO_INSTALL}" = "yes" ]; then
     scl run gcc-toolset-13 "sudo -E ${build_cmd}"
 else

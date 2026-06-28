@@ -11,6 +11,12 @@ else
     install_loc="$HOME/.local"
 fi
 
+# KLayout treats -prefix as the application bundle root (see src/app.pri:
+# target.path = $$PREFIX), not a FHS tree with bin/lib. Binaries land in
+# $PREFIX/klayout, $PREFIX/strm2gds, etc. Install into a dedicated subtree so
+# we do not pollute the shared sc-tools prefix used by yosys/openroad.
+klayout_root="${install_loc}/klayout"
+
 USE_SUDO_INSTALL="${USE_SUDO_INSTALL:-yes}"
 if [ "${USE_SUDO_INSTALL:-yes}" = "yes" ]; then
     SUDO_INSTALL="sudo"
@@ -68,16 +74,20 @@ git clone "$(python3 "${src_path}/_tools.py" --tool klayout --field git-url)" kl
 cd klayout
 git checkout "$(python3 "${src_path}/_tools.py" --tool klayout --field git-commit)"
 
-build_cmd="./build.sh -prefix \"${install_loc}\" -python \"${PYTHON}\" -qmake \"${QMAKE}\" -option \"-j${NPROC:-$(nproc)}\""
+build_cmd="./build.sh -prefix \"${klayout_root}\" -python \"${PYTHON}\" -qmake \"${QMAKE}\" -option \"-j${NPROC:-$(nproc)}\""
 if [ "${USE_SUDO_INSTALL}" = "yes" ]; then
     scl run gcc-toolset-13 "sudo -E ${build_cmd}"
 else
     scl run gcc-toolset-13 "${build_cmd}"
 fi
 
+# Expose the main binary on PATH alongside yosys/openroad in $PREFIX/bin.
+$SUDO_INSTALL mkdir -p "${install_loc}/bin"
+$SUDO_INSTALL ln -sf "../klayout/klayout" "${install_loc}/bin/klayout"
+
 # Bundle gcc-toolset-13 runtime libraries linked by the klayout binary.
 $SUDO_INSTALL mkdir -p "${install_loc}/lib"
-for lib in $(ldd "${install_loc}/bin/klayout" 2>/dev/null \
+for lib in $(ldd "${klayout_root}/klayout" 2>/dev/null \
              | awk '{print $3}' \
              | grep '^/opt/rh/gcc-toolset-13' || true); do
     echo "Copying toolset dependency: $lib"

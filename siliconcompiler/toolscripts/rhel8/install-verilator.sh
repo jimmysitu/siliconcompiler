@@ -12,6 +12,19 @@ else
     SUDO_INSTALL=""
 fi
 
+# sc-install always prepends "$PREFIX/bin" to PATH for build scripts, but
+# verilator's build has no dependency on tools already installed there.
+# Move it to the end of PATH instead of removing it: build utilities
+# (flex, bison, ...) resolve to the system toolchain instead of anything a
+# different tool's build dropped into the shared prefix (e.g. a custom
+# flex pulled in by openroad's dependency installer that segfaults on real
+# .l files), while help2man -- built into $PREFIX/bin by this same script,
+# below -- is still found as a fallback.
+if [ -n "${PREFIX}" ]; then
+    PATH="${PATH#${PREFIX}/bin:}:${PREFIX}/bin"
+    export PATH
+fi
+
 sudo yum group install -y "Development Tools"
 sudo yum install -y git wget
 

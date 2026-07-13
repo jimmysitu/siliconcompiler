@@ -37,7 +37,7 @@ else
     SUDO_INSTALL=""
 fi
 
-$SUDO_INSTALL make install
+scl run gcc-toolset-13 "$SUDO_INSTALL make install"
 cd -
 
 # Copy any gcc-toolset-13 runtime libraries that the built plugin actually

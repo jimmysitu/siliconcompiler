@@ -37,7 +37,11 @@ else
     SUDO_INSTALL=""
 fi
 
-scl run gcc-toolset-13 "$SUDO_INSTALL make install"
+if [ -n "$SUDO_INSTALL" ]; then
+    $SUDO_INSTALL scl run gcc-toolset-13 "make install"
+else
+    scl run gcc-toolset-13 "make install"
+fi
 cd -
 
 # Copy any gcc-toolset-13 runtime libraries that the built plugin actually

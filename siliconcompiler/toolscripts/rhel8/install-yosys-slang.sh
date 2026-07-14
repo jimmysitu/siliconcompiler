@@ -27,9 +27,6 @@ cd yosys-slang
 git checkout $(python3 ${src_path}/_tools.py --tool yosys-slang --field git-commit)
 git submodule update --init --recursive
 
-# Build under gcc-toolset-13 for C++20 support.
-scl run gcc-toolset-13 "make -j${NPROC:-$(nproc)}"
-
 USE_SUDO_INSTALL="${USE_SUDO_INSTALL:-yes}"
 if [ "${USE_SUDO_INSTALL:-yes}" = "yes" ]; then
     SUDO_INSTALL="sudo -E PATH=$PATH"
@@ -38,9 +35,9 @@ else
 fi
 
 if [ -n "$SUDO_INSTALL" ]; then
-    $SUDO_INSTALL scl run gcc-toolset-13 "make install"
+    $SUDO_INSTALL scl run gcc-toolset-13 "make -j${NPROC:-$(nproc)} install"
 else
-    scl run gcc-toolset-13 "make install"
+    scl run gcc-toolset-13 "make -j${NPROC:-$(nproc)} install"
 fi
 cd -
 
